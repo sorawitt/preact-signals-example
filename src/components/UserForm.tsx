@@ -1,31 +1,38 @@
 import { nanoid } from "nanoid";
-import { user, users } from "../signals/store";
+import type { JSX } from "preact";
+import {
+  prependUser,
+  resetUserDraft,
+  type User,
+  userDraft,
+} from "../signals/store";
 
 export default function UserForm() {
   const setField =
-    (field: "name" | "email" | "password") => (e: Event) => {
-      user.value = {
-        ...user.value,
-        [field]: (e.target as HTMLInputElement).value,
+    <K extends keyof User>(field: K) =>
+    (event: JSX.TargetedEvent<HTMLInputElement, Event>) => {
+      const nextValue = event.currentTarget.value;
+
+      userDraft.value = {
+        ...userDraft.value,
+        [field]: nextValue,
       };
     };
 
-  const createUser = (e: Event) => {
-    e.preventDefault();
-    users.value = [
-      {
-        ...user.value,
-        _id: user.value._id || nanoid(6).toUpperCase(),
-      },
-      ...users.value,
-    ];
+  const createUser = (
+    event: JSX.TargetedEvent<HTMLFormElement, SubmitEvent>
+  ) => {
+    event.preventDefault();
 
-    user.value = {
-      _id: "",
-      name: "",
-      email: "",
-      password: "",
+    const nextUser: User = {
+      ...userDraft.value,
+      _id: userDraft.value._id || nanoid(6).toUpperCase(),
+      name: userDraft.value.name.trim(),
+      email: userDraft.value.email.trim(),
     };
+
+    prependUser(nextUser);
+    resetUserDraft();
   };
 
   return (
@@ -50,7 +57,7 @@ export default function UserForm() {
             name="name"
             type="text"
             required
-            value={user.value.name}
+            value={userDraft.value.name}
             onChange={setField("name")}
             class="block w-full border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-white/40"
             placeholder="Ada Lovelace"
@@ -67,7 +74,7 @@ export default function UserForm() {
             type="email"
             required
             autoComplete="email"
-            value={user.value.email}
+            value={userDraft.value.email}
             onChange={setField("email")}
             class="block w-full border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-white/40"
             placeholder="ada@example.com"
@@ -84,7 +91,7 @@ export default function UserForm() {
             type="password"
             required
             autoComplete="new-password"
-            value={user.value.password}
+            value={userDraft.value.password}
             onChange={setField("password")}
             class="block w-full border border-slate-800 bg-slate-900 px-3 py-2 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-white/40"
             placeholder="••••••••"

@@ -1,34 +1,6 @@
-import { users } from "../signals/store";
+import { roster, type User } from "../signals/store";
 
-type UserRow = {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-};
-
-const mockRows: UserRow[] = [
-  {
-    id: "001",
-    name: "Ada Lovelace",
-    email: "ada@example.com",
-    password: "analytical-engine",
-  },
-  {
-    id: "002",
-    name: "Alan Turing",
-    email: "alan@example.com",
-    password: "enigma-1943",
-  },
-  {
-    id: "003",
-    name: "Grace Hopper",
-    email: "grace@example.com",
-    password: "compiler-queen",
-  },
-];
-
-function maskPassword(password: string) {
+function maskPassword(password: User["password"]) {
   if (!password) {
     return "—";
   }
@@ -41,17 +13,7 @@ function maskPassword(password: string) {
 }
 
 export function UserTable() {
-  const tableRows: UserRow[] =
-    users.value.length > 0
-      ? users.value.map((entry, index) => ({
-          id:
-            entry._id?.trim() ||
-            `USR-${(index + 1).toString().padStart(3, "0")}`.toUpperCase(),
-          name: entry.name || "Unnamed",
-          email: entry.email || "not-set@workspace.app",
-          password: entry.password || "",
-        }))
-      : mockRows;
+  const tableRows = roster.value;
 
   return (
     <section class="border border-slate-800/80 bg-slate-950 p-5 text-slate-100">
@@ -74,16 +36,27 @@ export function UserTable() {
           </tr>
         </thead>
         <tbody>
-          {tableRows.map((user) => (
-            <tr key={user.id} class="border-t border-slate-800/80">
-              <td class="py-2 text-slate-500">#{user.id}</td>
-              <td class="py-2">{user.name}</td>
-              <td class="py-2 text-slate-400">{user.email}</td>
-              <td class="py-2 font-mono text-xs text-slate-500">
-                {maskPassword(user.password)}
+          {tableRows.length === 0 ? (
+            <tr class="border-t border-slate-800/80">
+              <td class="py-4 text-center text-sm text-slate-500" colSpan={4}>
+                ยังไม่มีผู้ใช้ในรายการ ลองเพิ่มคนแรกดูนะ
               </td>
             </tr>
-          ))}
+          ) : (
+            tableRows.map((user) => (
+              <tr
+                key={user._id || `${user.email}-${user.name}`}
+                class="border-t border-slate-800/80"
+              >
+                <td class="py-2 text-slate-500">#{user._id || "PENDING"}</td>
+                <td class="py-2">{user.name}</td>
+                <td class="py-2 text-slate-400">{user.email}</td>
+                <td class="py-2 font-mono text-xs text-slate-500">
+                  {maskPassword(user.password)}
+                </td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
     </section>
