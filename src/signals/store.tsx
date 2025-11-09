@@ -1,2 +1,16 @@
 import { signal } from "@preact/signals";
-export const count = signal(0);
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
+export const user = signal<User>({
+  _id: "",
+  name: "",
+  email: "",
+  password: "",
+});
+
+export const users = signal<User[]>([]);
